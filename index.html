@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alibi Architect — AI Excuse Generator</title>
+  <meta name="description" content="Alibi Architect: An advanced AI system that generates highly believable, context-aware narratives for any scenario." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow--1"></div>
+  <div class="bg-glow bg-glow--2"></div>
+  <div class="bg-glow bg-glow--3"></div>
+  <div class="scanline"></div>
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- BIOS Panic Overlay -->
+  <div id="bios-overlay" class="bios-overlay hidden" aria-hidden="true">
+    <div class="bios-backdrop"></div>
+    <div class="bios-container">
+      <!-- Top Bar -->
+      <div class="bios-topbar">
+        <div class="bios-topbar-left">
+          <span class="bios-dot bios-dot--red"></span>
+          <span class="bios-dot bios-dot--yellow"></span>
+          <span class="bios-dot bios-dot--green"></span>
+          <span class="bios-topbar-title">ALIBI_ENGINE v4.7.2 — SECURE SHELL</span>
+        </div>
+        <div class="bios-topbar-right">
+          <span id="bios-clock">00:00:00</span>
+          <span class="bios-pid">PID:0x7F3A</span>
+        </div>
+      </div>
+
+      <!-- Terminal Body -->
+      <div class="bios-terminal">
+        <div class="bios-lines" id="bios-lines"></div>
+        <div class="bios-cursor-line">
+          <span class="bios-prompt">root@alibi:~$</span>
+          <span class="bios-cursor">█</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="bios-progress-container">
+        <div class="bios-progress-bar" id="bios-progress-bar"></div>
+      </div>
+
+      <!-- Bottom Status -->
+      <div class="bios-statusbar">
+        <span>MEM: 847MB / 2048MB</span>
+        <span>CPU: <span id="bios-cpu">0</span>%</span>
+        <span>ENTROPY: ACTIVE</span>
+        <span class="bios-status-ok" id="bios-status-label">● INITIALIZING</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-icon" id="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none">
+            <path d="M20 2L36 11V29L20 38L4 29V11L20 2Z" stroke="url(#g1)" stroke-width="2" fill="none"/>
+            <path d="M20 8L30 14V26L20 32L10 26V14L20 8Z" fill="url(#g1)" opacity="0.15"/>
+            <circle cx="20" cy="20" r="4" fill="url(#g1)"/>
+            <defs>
+              <linearGradient id="g1" x1="4" y1="2" x2="36" y2="38">
+                <stop stop-color="#6366f1"/>
+                <stop offset="1" stop-color="#a855f7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-title" id="logo-title">Alibi Architect</h1>
+          <p class="logo-subtitle">Advanced Narrative Intelligence</p>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="session-counter" id="session-counter">
+          <span>ALIBIS:</span>
+          <span class="count-num" id="session-count">0</span>
+        </div>
+        <div class="header-badge">
+          <span class="pulse-dot"></span>
+          <span>SYSTEM ACTIVE</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main id="app-main">
+    <div class="container">
+
+      <!-- Left Panel: Configuration -->
+      <section class="panel panel--config" id="config-panel">
+        <div class="panel-header">
+          <div class="panel-icon">⚙️</div>
+          <div>
+            <h2 class="panel-title">Mission Parameters</h2>
+            <p class="panel-desc">Configure your narrative blueprint</p>
+          </div>
+        </div>
+
+        <form id="excuse-form" autocomplete="off">
+          <!-- Scenario -->
+          <div class="field" id="field-scenario">
+            <label for="scenario">
+              <span class="field-icon">📋</span>
+              Scenario
+            </label>
+            <textarea id="scenario" rows="3" placeholder="e.g. Late to the Monday morning standup meeting..." required></textarea>
+          </div>
+
+          <!-- Target Authority -->
+          <div class="field" id="field-authority">
+            <label>
+              <span class="field-icon">👤</span>
+              Target Authority
+            </label>
+            <div class="btn-group" id="authority-group" role="radiogroup">
+              <button type="button" class="btn-option" data-value="strict" id="auth-strict">
+                <span class="opt-icon">🏛️</span>Strict
+              </button>
+              <button type="button" class="btn-option active" data-value="neutral" id="auth-neutral">
+                <span class="opt-icon">⚖️</span>Neutral
+              </button>
+              <button type="button" class="btn-option" data-value="friendly" id="auth-friendly">
+                <span class="opt-icon">😊</span>Friendly
+              </button>
+            </div>
+          </div>
+
+          <!-- Urgency Level -->
+          <div class="field" id="field-urgency">
+            <label>
+              <span class="field-icon">⏱️</span>
+              Urgency Level
+            </label>
+            <div class="btn-group" id="urgency-group" role="radiogroup">
+              <button type="button" class="btn-option" data-value="low" id="urg-low">Low</button>
+              <button type="button" class="btn-option active" data-value="medium" id="urg-medium">Medium</button>
+              <button type="button" class="btn-option" data-value="high" id="urg-high">High</button>
+              <button type="button" class="btn-option" data-value="critical" id="urg-critical">Critical</button>
+            </div>
+          </div>
+
+          <!-- Tone Mode -->
+          <div class="field" id="field-tone">
+            <label>
+              <span class="field-icon">🎭</span>
+              Tone Mode
+            </label>
+            <div class="btn-group" id="tone-group" role="radiogroup">
+              <button type="button" class="btn-option" data-value="formal" id="tone-formal">Formal</button>
+              <button type="button" class="btn-option active" data-value="emotional" id="tone-emotional">Emotional</button>
+              <button type="button" class="btn-option" data-value="casual" id="tone-casual">Casual</button>
+              <button type="button" class="btn-option" data-value="absurd" id="tone-absurd">Absurd</button>
+            </div>
+          </div>
+
+          <!-- Chaos Level -->
+          <div class="field" id="field-chaos">
+            <label for="chaos-slider">
+              <span class="field-icon">🌀</span>
+              Chaos Level
+              <span class="chaos-value" id="chaos-value">35</span>
+            </label>
+            <div class="slider-container">
+              <input type="range" id="chaos-slider" min="0" max="100" value="35" />
+              <div class="slider-labels">
+                <span>Realistic</span>
+                <span>Balanced</span>
+                <span>Absurd</span>
+              </div>
+            </div>
+            <div class="chaos-level-indicator level-low" id="chaos-indicator">
+              <span id="chaos-threat-label">THREAT: MINIMAL</span>
+              <div class="indicator-bar" style="--chaos-pct: 35%"></div>
+            </div>
+          </div>
+
+          <!-- Smart Warning Banner -->
+          <div class="smart-warning hidden" id="smart-warning">
+            <span class="smart-warning-icon">⚠️</span>
+            <span class="smart-warning-text" id="smart-warning-text">High risk of detection — strict authority + high chaos is a dangerous combination.</span>
+          </div>
+
+          <!-- Generate Button -->
+          <button type="submit" class="btn-generate" id="btn-generate">
+            <span class="btn-generate-inner">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <span>Generate Alibi</span>
+            </span>
+            <div class="btn-shimmer"></div>
+          </button>
+
+          <div class="shortcut-hint">
+            <span>or press</span>
+            <kbd>Ctrl</kbd>
+            <span>+</span>
+            <kbd>Enter</kbd>
+          </div>
+        </form>
+      </section>
+
+      <!-- Right Panel: Output -->
+      <section class="panel panel--output" id="output-panel">
+        <!-- Empty State -->
+        <div class="output-empty" id="output-empty">
+          <div class="empty-icon">
+            <svg viewBox="0 0 80 80" fill="none">
+              <circle cx="40" cy="40" r="35" stroke="url(#ge)" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.4"/>
+              <path d="M40 20V60M20 40H60" stroke="url(#ge)" stroke-width="1.5" opacity="0.25"/>
+              <circle cx="40" cy="40" r="10" fill="url(#ge)" opacity="0.1"/>
+              <circle cx="40" cy="40" r="3" fill="url(#ge)" opacity="0.5"/>
+              <defs>
+                <linearGradient id="ge" x1="5" y1="5" x2="75" y2="75">
+                  <stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h3>Awaiting Parameters</h3>
+          <p>Configure your mission parameters and generate an alibi to see the output here.</p>
+          <div class="empty-terminal-lines">
+            <div class="empty-terminal-line">$ alibi-engine --status</div>
+            <div class="empty-terminal-line">[SYS] Engine idle. Awaiting input...</div>
+            <div class="empty-terminal-line">[NET] Secure channel open.</div>
+            <div class="empty-terminal-line">$ _</div>
+          </div>
+        </div>
+
+        <!-- Loading State (Enhanced AI Thinking Phase) -->
+        <div class="output-loading hidden" id="output-loading">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring spinner-ring--2"></div>
+            <div class="spinner-ring spinner-ring--3"></div>
+          </div>
+          <p class="loading-text" id="loading-text">Analyzing scenario parameters...</p>
+          <div class="thinking-steps" id="thinking-steps">
+            <div class="thinking-step" id="think-step-1"><span class="think-dot"></span> Parsing scenario</div>
+            <div class="thinking-step" id="think-step-2"><span class="think-dot"></span> Analyzing authority</div>
+            <div class="thinking-step" id="think-step-3"><span class="think-dot"></span> Calibrating tone</div>
+            <div class="thinking-step" id="think-step-4"><span class="think-dot"></span> Computing metrics</div>
+            <div class="thinking-step" id="think-step-5"><span class="think-dot"></span> Generating narrative</div>
+          </div>
+        </div>
+
+        <!-- Result State -->
+        <div class="output-result hidden" id="output-result">
+          <div class="result-header">
+            <div class="panel-icon">📄</div>
+            <div>
+              <h2 class="panel-title">Generated Alibi</h2>
+              <p class="panel-desc" id="result-timestamp"></p>
+            </div>
+            <button class="btn-copy" id="btn-copy" title="Copy to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Excuse Card -->
+          <div class="excuse-card" id="excuse-card">
+            <div class="excuse-quote">"</div>
+            <p class="excuse-text" id="excuse-text"></p>
+          </div>
+
+          <!-- Metrics -->
+          <div class="metrics-grid" id="metrics-grid">
+            <div class="metric-card" id="metric-believability">
+              <div class="metric-ring-container">
+                <svg class="metric-ring" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"/>
+                  <circle cx="40" cy="40" r="34" class="metric-ring-fill" stroke-width="6" fill="none" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+                </svg>
+                <span class="metric-ring-value" id="metric-bel-value">0%</span>
+              </div>
+              <span class="metric-label">Believability</span>
+            </div>
+            <div class="metric-card" id="metric-risk">
+              <div class="metric-badge-container">
+                <span class="metric-badge" id="metric-risk-badge">—</span>
+              </div>
+              <span class="metric-label">Risk Level</span>
+            </div>
+            <div class="metric-card" id="metric-detection">
+              <div class="metric-badge-container">
+                <span class="metric-badge" id="metric-det-badge">—</span>
+              </div>
+              <span class="metric-label">Detection Prob.</span>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="result-tags" id="result-tags"></div>
+
+          <!-- Why This Works Card -->
+          <div class="why-card" id="why-card">
+            <div class="why-header">
+              <span class="why-icon">🧠</span>
+              <span class="why-title">Why This Works</span>
+            </div>
+            <p class="why-text" id="why-text"></p>
+            <div class="why-factors" id="why-factors"></div>
+          </div>
+
+          <!-- Result Warning -->
+          <div class="result-warning hidden" id="result-warning">
+            <span>⚠️</span>
+            <span id="result-warning-text">Caution: This alibi has elevated detection risk.</span>
+          </div>
+
+          <!-- Regenerate -->
+          <button class="btn-regen" id="btn-regen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/>
+            </svg>
+            Regenerate
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer id="app-footer">
+    <p>Alibi Architect v3.0 — For entertainment purposes only. Use responsibly. ⚡</p>
+  </footer>
+
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
